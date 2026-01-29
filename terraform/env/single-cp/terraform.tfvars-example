@@ -1,0 +1,30 @@
+# Set up a single VM control plane and 2 worker VMs
+
+cluster_name = "single-cp"
+network_bridge       = "virbr0"
+default_gateway = "192.168.1.1"
+dns_servers = [ "192.168.1.1", "8.8.8.8" ]
+
+nodes = {
+  cp1 = {
+    role   = "control-plane"
+    memory = 4096
+    vcpus  = 2
+    mac    = "52:54:00:10:00:01"
+    ipaddr = "192.168.1.121"
+  }
+  worker1 = {
+    role   = "worker"
+    memory = 8192
+    vcpus  = 4
+    mac    = "52:54:00:10:00:02"
+    ipaddr = "192.168.1.122"
+}
+  worker2 = {
+    role   = "worker"
+    memory = 8192
+    vcpus  = 4
+    mac    = "52:54:00:10:00:03"
+    ipaddr = "192.168.1.123"
+  }
+}

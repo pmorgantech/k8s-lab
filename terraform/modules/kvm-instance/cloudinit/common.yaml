@@ -1,0 +1,11 @@
+#cloud-config
+
+hostname: "${hostname}.${domain}"
+manage_etc_hosts: true
+fqdn: "${hostname}.${domain}"
+
+# users:
+#   - name: debian
+#     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+#     shell: /bin/bash
+

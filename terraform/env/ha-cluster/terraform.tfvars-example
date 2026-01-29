@@ -1,0 +1,43 @@
+cluster_name = "ha-cluster"
+network_bridge = "virbr0"
+default_gateway = "192.168.1.1"
+dns_servers = [ "192.168.1.1", "8.8.8.8" ]
+
+
+nodes = {
+  cp01 = {
+    role   = "control-plane"
+    memory = 4096
+    vcpus  = 2
+    mac    = "52:54:00:20:00:04"
+    ipaddr = "192.168.1.124"
+  }
+  cp02 = {
+    role   = "control-plane"
+    memory = 4096
+    vcpus  = 2
+    mac    = "52:54:00:20:00:05"
+    ipaddr = "192.168.1.125"
+  }
+  cp03 = {
+    role   = "control-plane"
+    memory = 4096
+    vcpus  = 2
+    mac    = "52:54:00:20:00:06"
+    ipaddr = "192.168.1.126"
+  }
+  worker01 = {
+    role   = "worker"
+    memory = 8192
+    vcpus  = 4
+    mac    = "52:54:00:20:00:07"
+    ipaddr = "192.168.1.127"
+  }
+  worker02 = {
+    role   = "worker"
+    memory = 8192
+    vcpus  = 4
+    mac    = "52:54:00:20:00:08"
+    ipaddr = "192.168.1.128"
+  }
+}
