@@ -1,0 +1,62 @@
+---
+# Playbook to install Kubernetes
+
+- name: Install kubectl
+  tags: kubectl
+  hosts: workstation
+  become: true
+  gather_facts: true
+  roles:
+    - kubectl
+
+- name: Wait for all nodes to be reachable via SSH
+  hosts: control_plane:workers
+  gather_facts: false
+  tasks:
+    - name: Wait for SSH
+      wait_for_connection:
+        delay: 5
+        timeout: 300
+
+- name: Common OS prep
+  tags: [common_os_prep,common]
+  hosts: 'all:!workstation'
+  become: true
+  gather_facts: true
+  roles:
+    - common
+    - containerd
+    - kubeadm
+
+- name: Initialize Kubernetes control plane
+  tags: init_control_plane
+  hosts: control_plane[0]
+  become: true
+  gather_facts: true
+  roles:
+    - control_plane
+
+- name: Join additional control plane nodes
+  tags: join_control_plane
+  hosts: control_plane[1:]
+  become: true
+  gather_facts: true
+  roles:
+    - control_plane
+
+- name: Install CNI
+  tags: install_cni
+  hosts: control_plane[0]
+  become: true
+  gather_facts: true
+  roles:
+    - cni
+
+- name: Join worker nodes
+  tags: join_worker
+  hosts: workers
+  become: true
+  gather_facts: true
+  roles:
+    - worker
+

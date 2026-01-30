@@ -5,7 +5,15 @@ manage_etc_hosts: true
 fqdn: "${hostname}.${domain}"
 
 # users:
-#   - name: debian
+#   - name: var.login_user
 #     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
 #     shell: /bin/bash
+
+runcmd:
+  - sudo systemctl stop ufw
+  - sudo systemctl disable ufw
+  - sudo /usr/sbin/iptables -F
+  - sudo /usr/sbin/iptables -T nat -F
+  - sudo /usr/sbin/iptables -X
+  - sudo /usr/sbin/iptables-save 
 

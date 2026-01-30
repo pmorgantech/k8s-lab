@@ -1,0 +1,13 @@
+---
+# Common variables for the Kubernetes cluster
+
+common_packages:
+  - iptables
+  - ipset
+  - ca-certificates
+  - lsb-release
+  - curl
+  - jq
+  - socat
+  - conntrack
+  - gpg

@@ -87,6 +87,12 @@ resource "libvirt_domain" "cluster_nodes" {
     name   = each.key
     memory = each.value["memory"]
     vcpu   = each.value["vcpus"]
+
+    # Enable host-passthrough to avoid K8s perf issues
+    cpu {
+      mode = "host-passthrough"
+    }
+    
     disk {
       # use the per-node writable volume created above
       volume_id = libvirt_volume.vm[each.key].id
@@ -105,4 +111,29 @@ resource "libvirt_domain" "cluster_nodes" {
       target_type = "serial"
       #source_path = "/dev/pts/1"
     }
+}
+
+
+# ------------------------------------------------------
+# Write ansible ini file
+# ------------------------------------------------------
+locals {
+  control_plane_nodes = {
+    for name, n in var.nodes : name => n
+    if n.role == "control-plane"
+  }
+
+  worker_nodes = {
+    for name, n in var.nodes : name => n
+    if n.role == "worker"
+  }
+}
+
+resource "local_file" "ansible_inventory" {
+  filename = "${path.root}/../../../ansible/inventory/${var.cluster_name}.ini"
+  content = templatefile("${path.module}/ansible_inventory.tpl", {
+    control_plane_nodes = local.control_plane_nodes,
+    worker_nodes = local.worker_nodes,
+    cluster_name = var.cluster_name
+  })
 }

@@ -1,0 +1,84 @@
+---
+# Tasks to initialize the Kubernetes control plane
+
+- name: Check if kubeadm has already initialized this node
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_initialized
+
+
+- name: Initialize first control plane node
+  when:
+    - ansible_facts['hostname'] == groups['control_plane'][0]
+    - not kubeadm_initialized.stat.exists
+  block:
+    - name: create config manifest
+      ansible.builtin.copy:
+        dest: /etc/kubernetes/kubeadm-init.yaml
+        mode: '0600'
+        owner: root
+        group: root
+        content: |
+          ---
+          apiVersion: kubeadm.k8s.io/v1beta4
+          kind: ClusterConfiguration
+          clusterName: "{{ cluster_name }}"
+          controlPlaneEndpoint: "{{ control_plane_endpoint }}:6443"
+          networking:
+            podSubnet: "{{ pod_cidr }}"
+          ---
+          apiVersion: kubeadm.k8s.io/v1beta4
+          kind: InitConfiguration
+          nodeRegistration:
+            criSocket: unix:///run/containerd/containerd.sock
+
+    - name: Run kubeadm init command
+      ansible.builtin.command: >
+        kubeadm init
+        --config /etc/kubernetes/kubeadm-init.yaml
+        --upload-certs
+      register: kubeadm_init_result
+      changed_when: true
+      failed_when: false
+
+- name: Create ~/.kube dir
+  tags: copy_admin_conf
+  ansible.builtin.file:
+    path: "/home/{{ admin_user }}/.kube"
+    state: directory
+    mode: '0700'
+    owner: "{{ admin_user }}"
+  loop: "{{ admin_users }}"
+  loop_control:
+    loop_var: admin_user
+
+- name: Generate worker join command
+  ansible.builtin.command: kubeadm token create --print-join-command
+  register: worker_join
+
+- name: Generate cert key
+  ansible.builtin.command: kubeadm init phase upload-certs --upload-certs
+  register: cert_key
+
+- name: Build control plane join command
+  ansible.builtin.set_fact:
+    cp_join_command: "{{ worker_join.stdout }} --control-plane --certificate-key {{ cert_key.stdout_lines[-1] }}"
+    worker_join_command: "{{ worker_join.stdout }}"
+
+- name: Join additional control plane nodes
+  command: "{{ hostvars[groups['control_plane'][0]].cp_join_command }}"
+  when:
+    - is_ha_cluster is defined and is_ha_cluster
+    - inventory_hostname != groups['control_plane'][0]
+
+- name: Copy admin.conf to ~/.kube/config
+  tags: copy_admin_conf
+  ansible.builtin.copy:
+    remote_src: true
+    src: /etc/kubernetes/admin.conf
+    dest: /home/{{ admin_user }}/.kube/config
+    mode: '0600'
+    owner: "{{ admin_user }}"
+  loop: "{{ admin_users }}"
+  loop_control:
+    loop_var: admin_user

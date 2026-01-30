@@ -20,6 +20,12 @@ variable "domain" {
   default = "lab.local"
 }
 
+variable "login_user" {
+  description = "User for host login"
+  type = string
+  default = "debian"
+}
+
 variable "default_gateway" {
   description = "IPv4 gateway"
   type = string

@@ -1,0 +1,25 @@
+---
+# Install CNI plugin
+
+- name: Get and patch flannel manifest
+  when: cni_plugin == "flannel"
+  tags: install_cni_flannel
+  block:
+    - name: Get flannel manifest
+      ansible.builtin.get_url:
+        url: "{{ flannel_manifest_url }}"
+        dest: "{{ flannel_manifest_path }}"
+        mode: '0644'
+        owner: root
+        group: root
+    - name: Patch flannel manifest
+      ansible.builtin.replace:
+        path: "{{ flannel_manifest_path }}"
+        regexp: "10.244.0.0/16"
+        replace: "{{ pod_cidr }}"
+        backup: true
+    - name: Apply flannel manifest
+      ansible.builtin.shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        kubectl apply -f "{{ flannel_manifest_path }}"
+

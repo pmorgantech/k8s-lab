@@ -1,0 +1,5 @@
+---
+# Settings particular to control plane nodes
+
+control_plane_endpoint: "{{ groups['control_plane'][0] }}.lab.local"
+is_ha_cluster: "{{ groups['control_plane']|length > 1 }}"

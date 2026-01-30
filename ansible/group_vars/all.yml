@@ -1,0 +1,26 @@
+---
+# Global variables for the Kubernetes cluster
+
+kubernetes_version: "1.33.7"
+kubernetes_major_minor: "{{ kubernetes_version.split('.')[0] }}.{{ kubernetes_version.split('.')[1] }}"
+pod_cidr: "10.10.0.0/16"
+service_cidr: "10.96.0.0/12"
+container_runtime: containerd
+domain: lab.local
+
+# CNI
+cni_plugin: flannel
+flannel_plugin_version: "0.27.4"
+flannel_plugin_url: "https://github.com/flannel-io/flannel/releases/download/v{{ cni_plugin_version }}/flannel-{{ cni_plugin_version }}-amd64.tgz"
+flannel_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/v0.27.4/Documentation/kube-flannel.yml"
+flannel_manifest_path: "/etc/kubernetes/flannel.yml"
+
+kubernetes_packages:
+  - kubelet
+  - kubeadm
+  - kubectl
+
+# List of users to copy admin.conf to
+admin_users:
+  - root
+  - debian

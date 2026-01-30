@@ -1,0 +1,23 @@
+---
+# OS releated prep tasks
+
+- name: Pick up OS-specific vars
+  include_vars: "{{ ansible_facts['os_family'] | lower }}.yml"
+
+- name: Install common packages
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
+
+- name: Ensure cluster hosts are present in /etc/hosts
+  become: true
+  tags: update_hosts
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} ANSIBLE MANAGED K8S-LAB"
+    block: |
+      {% for h in groups['all'] | sort %}
+      {% if hostvars[h]['ansible_host'] is defined %}
+      {{ hostvars[h]['ansible_host'] }} {{ h }}.{{ domain }} {{ h }}
+      {% endif %}
+      {% endfor %}
