@@ -87,4 +87,15 @@ terraform apply
 
 This will create the VMs and run the playbook to install Kubernetes onto them.
 
-As a last step, you may wish to copy the control plane /etc/kubernetes/admin.config to ~/.kube/config on your workstation to enable running kubectl locally.
+A few last steps:  You may wish to copy the control plane /etc/kubernetes/admin.config to ~/.kube/config on your workstation to enable running kubectl locally.
+Create local hosts entries for your VMs, and a ~/.ssh/config map for them similar to:
+
+```
+Host cp1 worker1 worker2
+  IdentityFile ~/.ssh/id_ed25519
+  User debian
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  LogLevel ERROR
+```
+
