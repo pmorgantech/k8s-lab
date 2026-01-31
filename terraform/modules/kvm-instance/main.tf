@@ -127,13 +127,40 @@ locals {
     for name, n in var.nodes : name => n
     if n.role == "worker"
   }
+
+  repo_root = abspath("${path.module}/../../../")
 }
 
 resource "local_file" "ansible_inventory" {
-  filename = "${path.root}/../../../ansible/inventory/${var.cluster_name}.ini"
+  filename = "${local.repo_root}/ansible/inventory/${var.cluster_name}.ini"
   content = templatefile("${path.module}/ansible_inventory.tpl", {
     control_plane_nodes = local.control_plane_nodes,
     worker_nodes = local.worker_nodes,
     cluster_name = var.cluster_name
   })
+}
+
+# ------------------------------------------------------
+# Ansible runner
+# ------------------------------------------------------
+
+# Runs only on changes to inventory or playbook
+resource "null_resource" "ansible_bootstrap" {
+  depends_on = [
+    local_file.ansible_inventory
+  ]
+
+  # We need to use sha256(inventory.content) instead of filesha for inventory because
+  # it will not have been generated at plan time which is when filesha256 evaluates. 
+  triggers = {
+    inventory_hash = sha256(local_file.ansible_inventory.content)
+    playbook_hash = filesha256("${local.repo_root}/ansible/site.yml")
+  }
+
+  provisioner "local-exec" {
+    command = <<EOT
+cd ${local.repo_root}/ansible
+ansible-playbook -i inventory/${var.cluster_name}.ini site.yml
+EOT
+  }
 }

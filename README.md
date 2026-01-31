@@ -83,10 +83,8 @@ terraform init
 terraform validate
 terraform plan
 terraform apply
+```
 
-# Then generate ansible inventory from the cluster:
-terraform output -raw ansible_inventory_ini > ../../../ansible/inventory
+This will create the VMs and run the playbook to install Kubernetes onto them.
 
-# Now you can run the ansible playbook to install Kubernetes
-cd ansible
-ansible-playbook install_kubernetes.yml -i inventory
+As a last step, you may wish to copy the control plane /etc/kubernetes/admin.config to ~/.kube/config on your workstation to enable running kubectl locally.
