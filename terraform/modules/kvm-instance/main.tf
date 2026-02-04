@@ -67,13 +67,14 @@ resource "libvirt_volume" "vm" {
 
 
 # ------------------------------------------------------
-# Storage
+# Network
 # ------------------------------------------------------
 
 resource "libvirt_network" "kubernetes_network" {
   name = var.network_bridge
   mode = "bridge"
   bridge = var.network_bridge
+  autostart = true
 }
 
 

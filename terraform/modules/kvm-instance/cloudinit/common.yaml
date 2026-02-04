@@ -1,7 +1,7 @@
 #cloud-config
 
 hostname: "${hostname}.${domain}"
-manage_etc_hosts: true
+#manage_etc_hosts: true
 fqdn: "${hostname}.${domain}"
 
 # users:

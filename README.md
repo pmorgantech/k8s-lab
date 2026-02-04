@@ -99,3 +99,13 @@ Host cp1 worker1 worker2
   LogLevel ERROR
 ```
 
+You should be able to run kubectl directly on your workstation to connect to the test cluster:
+
+```
+$ kubectl get nodes
+NAME                STATUS   ROLES           AGE     VERSION
+cp1.lab.local       Ready    control-plane   3m      v1.33.7
+worker1.lab.local   Ready    <none>          2m38s   v1.33.7
+worker2.lab.local   Ready    <none>          2m37s   v1.33.7
+```
+
