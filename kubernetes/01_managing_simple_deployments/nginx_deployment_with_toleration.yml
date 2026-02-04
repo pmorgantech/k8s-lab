@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: mynginx
+  name: mynginx
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: mynginx
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: mynginx # this is the label for the pod template
+    spec:
+      tolerations:
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 10
+      containers:
+      - image: nginx:1.29.1-alpine
+        name: nginx
