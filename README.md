@@ -109,3 +109,12 @@ worker1.lab.local   Ready    <none>          2m38s   v1.33.7
 worker2.lab.local   Ready    <none>          2m37s   v1.33.7
 ```
 
+
+## HA Cluster
+
+
+## Kubernetes Learning Notes
+
+There are a number of exercises describing different Kubernetes functionality in the kubenetes subdirectory.  Link below:
+
+[Kubernetes Lab Exercises](kubernetes/README.md)
