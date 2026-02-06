@@ -1,7 +1,7 @@
 ---
 # Tasks to join worker nodes to the Kubernetes cluster
 
-# - debug: msg="{{ hostvars[groups['control_plane'][0]].worker_join_command }}"
+- debug: msg="{{ hostvars[groups['control_plane'][0]].worker_join_command }}"
 
 - name: Join worker to cluster
   command: "{{ hostvars[groups['control_plane'][0]].worker_join_command }}"

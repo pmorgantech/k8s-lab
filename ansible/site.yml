@@ -36,6 +36,26 @@
   roles:
     - control_plane
 
+- name: Generate kubeconfig file
+  tags: merge_admin_conf
+  hosts: localhost
+  connection: local
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Merge admin.conf into ~/.kube/config
+      ansible.builtin.shell: |
+        export KUBECONFIG="{{ kubeconfig_path }}:/tmp/k8s-admin.conf"
+        HOMEDIR="{{ lookup('env', 'HOME') }}"
+        mkdir -p "$HOMEDIR/.kube"
+        kubectl config view --merge --flatten > "$HOMEDIR/.kube/config_merged"
+        mv "$HOMEDIR/.kube/config_merged" "$HOMEDIR/.kube/config"
+        chmod 0600 "$HOMEDIR/.kube/config"
+        OWNER=$(stat -c "%U" "$HOMEDIR")
+        chown -R $OWNER "$HOMEDIR/.kube"
+  vars:
+    kubeconfig_path: "$HOMEDIR/.kube/config"
+
 - name: Join additional control plane nodes
   tags: join_control_plane
   hosts: control_plane[1:]

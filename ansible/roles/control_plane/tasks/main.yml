@@ -44,7 +44,7 @@
 - name: Create ~/.kube dir
   tags: copy_admin_conf
   ansible.builtin.file:
-    path: "/home/{{ admin_user }}/.kube"
+    path: "{{ (admin_user == 'root') | ternary('/root', '/home/' + admin_user) }}/.kube"
     state: directory
     mode: '0700'
     owner: "{{ admin_user }}"
@@ -52,33 +52,63 @@
   loop_control:
     loop_var: admin_user
 
-- name: Generate worker join command
-  ansible.builtin.command: kubeadm token create --print-join-command
-  register: worker_join
+- name: Copy admin.conf to all control plane nodes
+  tags: copy_admin_conf
+  ansible.builtin.fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: /tmp/k8s-admin.conf
+    mode: '0600'
+    owner: root
+    group: root
+    flat: true
+  run_once: true
+  delegate_to: "{{ groups['control_plane'][0] }}"
 
-- name: Generate cert key
-  ansible.builtin.command: kubeadm init phase upload-certs --upload-certs
-  register: cert_key
-
-- name: Build control plane join command
-  ansible.builtin.set_fact:
-    cp_join_command: "{{ worker_join.stdout }} --control-plane --certificate-key {{ cert_key.stdout_lines[-1] }}"
-    worker_join_command: "{{ worker_join.stdout }}"
-
-- name: Join additional control plane nodes
-  command: "{{ hostvars[groups['control_plane'][0]].cp_join_command }}"
-  when:
-    - is_ha_cluster is defined and is_ha_cluster
-    - inventory_hostname != groups['control_plane'][0]
-
-- name: Copy admin.conf to ~/.kube/config
+- name: Copy admin.conf all control plane nodes
   tags: copy_admin_conf
   ansible.builtin.copy:
-    remote_src: true
-    src: /etc/kubernetes/admin.conf
-    dest: /home/{{ admin_user }}/.kube/config
+    src: /tmp/k8s-admin.conf
+    dest: "{{ (admin_user == 'root') | ternary('/root', '/home/' + admin_user) }}/.kube/config"
     mode: '0600'
     owner: "{{ admin_user }}"
   loop: "{{ admin_users }}"
   loop_control:
     loop_var: admin_user
+
+- name: Remove temporary admin.conf file
+  tags: remove_admin_conf
+  ansible.builtin.file:
+    path: /tmp/k8s-admin.conf
+    state: absent
+
+- name: Generate and publish control-plane join command
+  tags: [join_control_plane]
+  block:
+    - name: Create join command
+      ansible.builtin.command: kubeadm token create --print-join-command
+      register: _worker_join
+
+    - name: Upload certs and capture certificate key
+      ansible.builtin.command: kubeadm init phase upload-certs --upload-certs
+      register: _upload_certs
+
+    - name: Save cp_join_command fact on cp01 for other hosts to use
+      ansible.builtin.set_fact:
+        cp_join_command: "{{ _worker_join.stdout }} --control-plane --certificate-key {{ (_upload_certs.stdout_lines | last) }}"
+        worker_join_command: "{{ _worker_join.stdout }}"
+      delegate_facts: true
+  delegate_to: "{{ groups['control_plane'][0] }}"
+  run_once: true
+  when:
+    - is_ha_cluster | bool
+    # The control_plane role is used in multiple plays (init on cp01, join on cp02+).
+    # Generate/upload certs only during the join play, while delegating execution to cp01.
+    - inventory_hostname != groups['control_plane'][0]
+
+- name: Join additional control plane nodes
+  tags: [join_control_plane]
+  ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]].cp_join_command }}"
+  when:
+    - is_ha_cluster | bool
+    - inventory_hostname != groups['control_plane'][0]
+
