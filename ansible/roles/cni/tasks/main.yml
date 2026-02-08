@@ -23,3 +23,45 @@
         export KUBECONFIG=/etc/kubernetes/admin.conf
         kubectl apply -f "{{ flannel_manifest_path }}"
 
+- name: Get and patch calico manifest
+  when: cni_plugin == "calico"
+  tags: install_cni_calico
+  block:
+    - name: Get calico manifest
+      ansible.builtin.get_url:
+        url: "{{ calico_manifest_url }}"
+        dest: "{{ calico_manifest_path }}"
+        mode: '0644'
+        owner: root
+        group: root
+    - name: Patch calico manifest
+      ansible.builtin.replace:
+        path: "{{ calico_manifest_path }}"
+        regexp: "192.168.0.0/16"
+        replace: "{{ pod_cidr }}"
+        backup: true
+    - name: Apply calico manifest
+      ansible.builtin.shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        kubectl apply -f "{{ calico_manifest_path }}"
+    # - name: Apply Calico IPPool with correct pod CIDR
+    #   ansible.builtin.copy:
+    #     dest: /tmp/calico-ippool.yaml
+    #     content: |
+    #       apiVersion: projectcalico.org/v3
+    #       kind: IPPool
+    #       metadata:
+    #         name: default-ipv4-ippool
+    #       spec:
+    #         cidr: "{{ pod_cidr }}"
+    #         ipipMode: Always
+    #         natOutgoing: true
+    #         selector: all()
+    # - name: Apply the custom IPPool
+    #   ansible.builtin.shell: |
+    #     export KUBECONFIG=/etc/kubernetes/admin.conf
+    #     kubectl apply -f /tmp/calico-ippool.yaml
+    # - name: Delete the temporary IPPool file
+    #   ansible.builtin.file:
+    #     path: /tmp/calico-ippool.yaml
+    #     state: absent

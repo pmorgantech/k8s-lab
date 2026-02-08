@@ -133,6 +133,10 @@ locals {
 }
 
 resource "local_file" "ansible_inventory" {
+  depends_on = [
+    libvirt_domain.cluster_nodes
+  ]
+  
   filename = "${local.repo_root}/ansible/inventory/${var.cluster_name}.ini"
   content = templatefile("${path.module}/ansible_inventory.tpl", {
     control_plane_nodes = local.control_plane_nodes,

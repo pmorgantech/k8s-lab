@@ -80,3 +80,11 @@
   roles:
     - worker
 
+- name: Install Additional Services
+  tags: [install_loadbalancer,install_argocd]
+  hosts: control_plane[0]
+  become: true
+  gather_facts: true
+  roles:
+    - loadbalancer
+    - argocd

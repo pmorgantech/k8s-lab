@@ -77,5 +77,22 @@ pod/csi-resizer-547574c476-g46pj evicted
 pod/longhorn-ui-6d6d8544bc-7dz7s evicted
 pod/longhorn-ui-6d6d8544bc-clqqs evicted
 node/worker1.lab.local drained
-
 ```
+
+Even though we see many pods evicted, some will still run due to being daemonset pods:
+```
+$ kubectl get nodes --field-selector metadata.name=worker1.lab.local
+NAME                STATUS                     ROLES    AGE     VERSION
+worker1.lab.local   Ready,SchedulingDisabled   worker   2d23h   v1.33.7
+
+$ kubectl get pods -A -o wide --field-selector spec.nodeName=worker1.lab.local
+NAMESPACE         NAME                             READY   STATUS    RESTARTS       AGE     IP              NODE                NOMINATED NODE   READINESS GATES
+default           node-exporter-cl7gt              1/1     Running   0              9m41s   10.10.1.129     worker1.lab.local   <none>           <none>
+kube-flannel      kube-flannel-ds-4nnkj            1/1     Running   7 (20h ago)    2d23h   192.168.0.122   worker1.lab.local   <none>           <none>
+kube-system       kube-proxy-cxs8s                 1/1     Running   7 (20h ago)    2d23h   192.168.0.122   worker1.lab.local   <none>           <none>
+longhorn-system   engine-image-ei-b0369a5d-2jgns   1/1     Running   3 (20h ago)    2d      10.10.1.95      worker1.lab.local   <none>           <none>
+longhorn-system   longhorn-csi-plugin-bzrtw        3/3     Running   10 (20h ago)   2d      10.10.1.96      worker1.lab.local   <none>           <none>
+longhorn-system   longhorn-manager-pfxwl           1/1     Running   4 (20h ago)    2d      10.10.1.97      worker1.lab.local   <none>           <none>
+```
+
+This is the effect of the --ignore-daemonsets flag.

@@ -1,0 +1,26 @@
+---
+# Install and configure ArgoCD
+
+- name: Install ArgoCD via manifest
+  when: argocd_enabled is defined and argocd_enabled
+  tags: install_argocd
+  block:
+    - name: Download ArgoCD manifest
+      ansible.builtin.get_url:
+        url: "{{ argocd_manifest_url }}"
+        dest: "{{ argocd_manifest_path }}"
+        mode: '0644'
+    - name: Apply ArgoCD manifest
+      ansible.builtin.shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        kubectl apply -f "{{ argocd_manifest_path }}"
+
+    - name: Apply ArgoCD manifest
+      ansible.builtin.shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        kubectl apply -f "{{ argocd_manifest_path }}"
+    
+    - name: Delete the temporary manifest file
+      ansible.builtin.file:
+        path: "{{ argocd_manifest_path }}"
+        state: absent

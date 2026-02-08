@@ -5,15 +5,34 @@ kubernetes_version: "1.33.7"
 kubernetes_major_minor: "{{ kubernetes_version.split('.')[0] }}.{{ kubernetes_version.split('.')[1] }}"
 pod_cidr: "10.10.0.0/16"
 service_cidr: "10.96.0.0/12"
+
 container_runtime: containerd
 domain: lab.local
 
 # CNI
-cni_plugin: flannel
+cni_plugin: calico
+
 flannel_plugin_version: "0.27.4"
 flannel_plugin_url: "https://github.com/flannel-io/flannel/releases/download/v{{ cni_plugin_version }}/flannel-{{ cni_plugin_version }}-amd64.tgz"
 flannel_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/v0.27.4/Documentation/kube-flannel.yml"
 flannel_manifest_path: "/etc/kubernetes/flannel.yml"
+
+calico_plugin_version: "3.31.3"
+calico_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_plugin_version }}/manifests/calico.yaml"
+calico_manifest_path: "/etc/kubernetes/calico.yaml"
+
+# MetalLB
+metallb_version: "0.15.3"
+metallb_manifest_url: "https://raw.githubusercontent.com/metallb/metallb/v{{ metallb_version }}/config/manifests/metallb-native.yaml"
+metallb_manifest_path: "/etc/kubernetes/metallb.yaml"
+metallb_ip_range: "192.168.1.101-192.168.1.120"
+
+# ArgoCD
+argocd_enabled: true
+argocd_version: "3.3.0"
+argocd_manifest_url: "https://raw.githubusercontent.com/argoproj/argo-cd/v{{ argocd_version }}/manifests/install.yaml"
+argocd_manifest_path: "/etc/kubernetes/argocd.yaml"
+
 
 kubernetes_packages:
   - kubelet

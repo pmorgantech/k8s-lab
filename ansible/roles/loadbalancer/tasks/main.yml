@@ -1,0 +1,49 @@
+---
+
+# Install and configure a load balancer
+
+- name: Install MetalLB
+  tags: install_metallb
+  block:
+    - name: Download MetalLB manifest
+      ansible.builtin.get_url:
+        url: "{{ metallb_manifest_url }}"
+        dest: "{{ metallb_manifest_path }}"
+        mode: '0644'
+        owner: root
+        group: root
+    - name: Apply MetalLB manifest
+      ansible.builtin.shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        kubectl apply -f "{{ metallb_manifest_path }}"
+    - name: Wait for MetalLB endpoint
+      ansible.builtin.pause:
+        seconds: 60
+    - name: Create MetalLB IPAdressPool
+      tags: metallb_ip_pool
+      ansible.builtin.copy:
+        dest: /tmp/metallb-ippool.yaml
+        content: |
+            apiVersion: metallb.io/v1beta1
+            kind: IPAddressPool
+            metadata:
+              name: lan-pool
+              namespace: metallb-system
+            spec:
+              addresses:
+              - "{{ metallb_ip_range }}"
+            ---
+            apiVersion: metallb.io/v1beta1
+            kind: L2Advertisement
+            metadata:
+              name: l2
+              namespace: metallb-system
+    - name: Apply the custom IPPool
+      tags: metallb_ip_pool
+      ansible.builtin.shell: |
+        export KUBECONFIG=/etc/kubernetes/admin.conf
+        kubectl apply -f /tmp/metallb-ippool.yaml
+    - name: Delete the temporary IPPool file
+      ansible.builtin.file:
+        path: /tmp/metallb-ippool.yaml
+        state: absent
