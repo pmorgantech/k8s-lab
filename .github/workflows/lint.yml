@@ -55,7 +55,7 @@ jobs:
         run: ansible-lint -p -v . | tee reports/ansible_lint.txt
 
       - name: YAML Lint
-        run: yamllint . | tee reports/yaml_lint.txt
+        run: yamllint -c .yamllint-kubernetes kubernetes .github/ | tee reports/yaml_lint.txt
 
       - name: Setup Node
         uses: actions/setup-node@v4
