@@ -1,0 +1,7 @@
+# .yamllint
+extends: default
+
+# Kubernetes
+rules:
+  document-start: disable
+  line-length: disable

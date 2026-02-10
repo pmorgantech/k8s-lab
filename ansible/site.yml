@@ -20,7 +20,7 @@
         timeout: 300
 
 - name: Common OS prep
-  tags: [common_os_prep,common]
+  tags: [common_os_prep, common]
   hosts: 'all:!workstation'
   become: true
   gather_facts: true
@@ -85,7 +85,7 @@
 #       ansible.builtin.pause:
 #         seconds: 30
 
-
+# kubectl wait --for=condition=Ready nodes -l node-role.kubernetes.io/control-plane --timeout=300s
 
 - name: Indicate worker node names
   hosts: workers
@@ -114,11 +114,9 @@
     - argocd
 
 - name: Install Additional Services
-  tags: [install_loadbalancer,install_argocd]
+  tags: [install_loadbalancer, install_argocd]
   hosts: control_plane[0]
   become: true
   gather_facts: true
   roles:
     - loadbalancer
-
-

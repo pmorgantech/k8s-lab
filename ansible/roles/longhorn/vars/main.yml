@@ -14,4 +14,3 @@ longhorn_values:
   defaultSettings:
     defaultDataPath: '{{ longhorn_storage_mountpoint }}'
     defaultReplicaCount: 2
-

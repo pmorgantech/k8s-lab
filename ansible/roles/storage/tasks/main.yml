@@ -23,7 +23,7 @@
         dev: "{{ storage_device }}"
         fstype: "{{ storage_filesystem }}"
         state: present
-    
+
     - name: Storage mountpoint exists
       ansible.builtin.file:
         path: "{{ storage_mountpoint }}"

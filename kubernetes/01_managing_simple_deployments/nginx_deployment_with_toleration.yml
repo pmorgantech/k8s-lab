@@ -17,13 +17,13 @@ spec:
   template:
     metadata:
       labels:
-        app: mynginx # this is the label for the pod template
+        app: mynginx   # this is the label for the pod template
     spec:
       tolerations:
-      - key: "node.kubernetes.io/unreachable"
-        operator: "Exists"
-        effect: "NoExecute"
-        tolerationSeconds: 10
+        - key: "node.kubernetes.io/unreachable"
+          operator: "Exists"
+          effect: "NoExecute"
+          tolerationSeconds: 10
       containers:
-      - image: nginx:1.29.1-alpine
-        name: nginx
+        - image: nginx:1.29.1-alpine
+          name: nginx

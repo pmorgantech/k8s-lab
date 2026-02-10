@@ -16,7 +16,7 @@ spec:
         app: node-exporter
     spec:
       containers:
-      - image: prom/node-exporter
-        name: node-exporter
-        resources: {}
+        - image: prom/node-exporter
+          name: node-exporter
+          resources: {}
 status: {}

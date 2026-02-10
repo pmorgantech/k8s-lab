@@ -6,7 +6,7 @@ containerd_version: "2.2.1-1"
 # Generated with: containerd config default > config.toml
 # Reference: https://github.com/containerd/containerd/blob/main/docs/man/containerd-config.toml.5.md
 # [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-# 
+#
 # OVERRIDES:
 #  SystemdCgroup = true
 #  sandbox_image = "registry.k8s.io/pause:3.9"

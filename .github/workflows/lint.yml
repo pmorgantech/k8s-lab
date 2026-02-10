@@ -1,0 +1,76 @@
+---
+
+# Github Actions to do basic linting
+# What we lint here:
+# - Ansible playbooks and roles
+# - YAML files (e.g., inventory, group_vars, etc.)
+# - Shell scripts (if any)
+# - Markdown files (e.g., README.md)
+
+name: Lint and Validate
+
+'on':
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'feature/*'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up reports directory
+        run: mkdir -p reports
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Terraform setup
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.3
+
+      - name: Terraform format check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform validate
+        run: |
+          terraform init -backend=false
+          terraform validate | tee reports/terraform_validate.txt
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python linters
+        run: pip install ansible-lint yamllint
+
+      - name: Ansible Lint
+        run: ansible-lint -p -v . | tee reports/ansible_lint.txt
+
+      - name: YAML Lint
+        run: yamllint . | tee reports/yaml_lint.txt
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli
+
+      - name: Markdown Lint
+        run: |
+          markdownlint '**/*.md' --ignore node_modules --ignore vendor \
+            | tee reports/markdown_lint.txt
+
+      - name: Install Shellcheck
+        run: sudo apt update && apt install -y shellcheck
+
+      - name: Shellcheck
+        run: |
+          find . -type f -name "*.sh" -exec shellcheck {} \; \
+            | tee reports/shellcheck.txt

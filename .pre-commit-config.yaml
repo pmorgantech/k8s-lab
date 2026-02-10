@@ -1,19 +1,29 @@
+---
 # Git pre-commit hook
 # Copy me to .git/hooks/pre-commit
 
 repos:
   - repo: local
     hooks:
+      - id: trailing-whitespace
+        name: Remove trailing whitespace
+        entry: bash -c 'git diff --cached --name-only -z --diff-filter=ACMR | xargs -0 perl -pi -e "s/[ \t]+$//" && git diff --cached --name-only -z --diff-filter=ACMR | xargs -0 git add'
+        language: system
+        pass_filenames: false
+
       - id: terraform-fmt
         name: terraform fmt (recursive)
-        entry: bash -c 'cd terraform && terraform fmt -recursive'
+        entry: bash -c 'cd terraform && terraform fmt -recursive && git add -u .'
         language: system
         pass_filenames: false
 
       - id: terraform-validate
         name: terraform validate
         entry: >-
-          bash -c 'cd terraform/env && for d in $(find . -mindepth 1 -maxdepth 1 -type d);
-          do echo "Validating env: $d"; (cd $d ; terraform init && terraform validate) ; done'
+          bash -c 'cd terraform/env &&
+            for d in $(find . -mindepth 1 -maxdepth 1 -type d); do
+              echo "Validating env: $d";
+              (cd $d ; terraform init && terraform validate) ;
+            done'
         pass_filenames: false
         language: system

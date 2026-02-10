@@ -6,7 +6,6 @@
     path: /etc/kubernetes/admin.conf
   register: kubeadm_initialized
 
-
 - name: Initialize first control plane node
   when:
     - ansible_facts['hostname'] == groups['control_plane'][0]
@@ -111,4 +110,3 @@
   when:
     - is_ha_cluster | bool
     - inventory_hostname != groups['control_plane'][0]
-

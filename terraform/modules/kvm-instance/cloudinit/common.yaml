@@ -1,7 +1,7 @@
-#cloud-config
+# cloud-config
 
 hostname: "${hostname}.${domain}"
-#manage_etc_hosts: true
+# manage_etc_hosts: true
 fqdn: "${hostname}.${domain}"
 
 # users:
@@ -15,5 +15,4 @@ runcmd:
   - sudo /usr/sbin/iptables -F
   - sudo /usr/sbin/iptables -T nat -F
   - sudo /usr/sbin/iptables -X
-  - sudo /usr/sbin/iptables-save 
-
+  - sudo /usr/sbin/iptables-save

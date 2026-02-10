@@ -12,15 +12,15 @@ spec:
       app: postgres
   serviceName: postgres
   volumeClaimTemplates:
-  - metadata:
-      name: postgres-pv
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 1Gi
-      storageClassName: longhorn
+    - metadata:
+        name: postgres-pv
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: longhorn
   template:
     metadata:
       creationTimestamp: null
@@ -28,21 +28,20 @@ spec:
         app: postgres
     spec:
       containers:
-      - image: postgres:16
-        name: postgres
-        resources:
-          limits:
-            cpu: "2"
-            memory: "1Gi"
-          requests:
-            cpu: "1"
-            memory: "1Gi"
-        env:
-        - name: POSTGRES_HOST_AUTH_METHOD
-          value: "trust"
-        - name: PGDATA
-          value: /var/lib/postgresql/data/pgdata
-        volumeMounts:
-        - name: postgres-pv
-          mountPath: /var/lib/postgresql/data
-
+        - image: postgres:16
+          name: postgres
+          resources:
+            limits:
+              cpu: "2"
+              memory: "1Gi"
+            requests:
+              cpu: "1"
+              memory: "1Gi"
+          env:
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: "trust"
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: postgres-pv
+              mountPath: /var/lib/postgresql/data
