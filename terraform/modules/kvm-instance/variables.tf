@@ -10,25 +10,25 @@ variable "network_bridge" {
 
 variable "dns_servers" {
   description = "List of DNS server ip addresses"
-  type = list(string)
-  default = [ "8.8.8.8", "1.1.1.1" ]
+  type        = list(string)
+  default     = ["8.8.8.8", "1.1.1.1"]
 }
 
 variable "domain" {
   description = "Domain name to be used for kubernetes hosts"
-  type = string
-  default = "lab.local"
+  type        = string
+  default     = "lab.local"
 }
 
 variable "login_user" {
   description = "User for host login"
-  type = string
-  default = "debian"
+  type        = string
+  default     = "debian"
 }
 
 variable "default_gateway" {
   description = "IPv4 gateway"
-  type = string
+  type        = string
 }
 
 variable "nodes" {

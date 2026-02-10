@@ -1,0 +1,19 @@
+# Git pre-commit hook
+# Copy me to .git/hooks/pre-commit
+
+repos:
+  - repo: local
+    hooks:
+      - id: terraform-fmt
+        name: terraform fmt (recursive)
+        entry: bash -c 'cd terraform && terraform fmt -recursive'
+        language: system
+        pass_filenames: false
+
+      - id: terraform-validate
+        name: terraform validate
+        entry: >-
+          bash -c 'cd terraform/env && for d in $(find . -mindepth 1 -maxdepth 1 -type d);
+          do echo "Validating env: $d"; (cd $d ; terraform init && terraform validate) ; done'
+        pass_filenames: false
+        language: system

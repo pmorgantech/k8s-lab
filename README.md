@@ -9,6 +9,7 @@ This lab assumes a prequisites, namely that your workstation meets the following
 - Debian/Ubuntu compatible
 - ansible-core 2.20 or later is installed
 - ansible kubernetes.core collection is installed
+- terraform cli is installed
 - virsh and kvm tools are installed
 - You have plenty of free diskspace visible under /k8s mountpoint/dir
 
@@ -29,7 +30,8 @@ pipx install ansible-core
 ansible-galaxy collection install kubernetes.core
 
 # Recommended
-pipx install ansible-lint
+pipx install ansible-lint pre-commit
+pre-commit install
 ```
 
 ## High Level Plan
