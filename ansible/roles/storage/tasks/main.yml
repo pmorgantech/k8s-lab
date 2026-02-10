@@ -1,0 +1,41 @@
+---
+# Extra storage
+
+- name: Install prerequisite packages
+  tags: storage_packages
+  package:
+    name: '{{ storage_packages }}'
+    state: present
+
+- name: Ensure iscsid is enabled/running
+  tags: storage_packages
+  ansible.builtin.systemd:
+    name: iscsid
+    enabled: true
+    state: started
+
+- name: Install storage on worker nodes
+  tags: worker_storage_disks
+  when: ansible_facts['hostname'] in groups['workers']
+  block:
+    - name: Storage disk is formatted
+      ansible.builtin.filesystem:
+        dev: "{{ storage_device }}"
+        fstype: "{{ storage_filesystem }}"
+        state: present
+    
+    - name: Storage mountpoint exists
+      ansible.builtin.file:
+        path: "{{ storage_mountpoint }}"
+        state: directory
+        owner: root
+        group: root
+        mode: '0700'
+
+    - name: Storage is mounted
+      ansible.builtin.mount:
+        src: "{{ storage_device }}"
+        fstype: "{{ storage_filesystem }}"
+        opts: "{{ storage_filesystem_opts }}"
+        path: "{{ storage_mountpoint }}"
+        state: mounted

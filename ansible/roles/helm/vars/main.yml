@@ -1,0 +1,8 @@
+---
+
+# Helm-specific vars
+
+helm_repo_key_url: https://packages.buildkite.com/helm-linux/helm-debian/gpgkey
+helm_repo_url: https://packages.buildkite.com/helm-linux/helm-debian/any/
+
+helm_repo_key_file: /usr/share/keyrings/helm-stable-debian.gpg

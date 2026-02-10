@@ -1,0 +1,12 @@
+---
+# CSI storage host configuration
+
+storage_device: /dev/vdb
+storage_mountpoint: /var/lib/longhorn
+
+storage_filesystem: ext4
+storage_filesystem_opts: noatime
+
+storage_packages:
+  - open-iscsi
+  - nfs-common

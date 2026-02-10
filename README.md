@@ -2,6 +2,36 @@
 
 This repository follows my work installing a local multi-vm Kubernetes lab to simulate a production environment for learning and testing. 
 
+## Prerequisites
+
+This lab assumes a prequisites, namely that your workstation meets the following requirements:
+
+- Debian/Ubuntu compatible
+- ansible-core 2.20 or later is installed
+- ansible kubernetes.core collection is installed
+- virsh and kvm tools are installed
+- You have plenty of free diskspace visible under /k8s mountpoint/dir
+
+Eg. setup:
+```
+sudo apt update
+sudo apt install -y \
+  qemu-kvm \
+  libvirt-daemon-system \
+  libvirt-clients \
+  virtinst \
+  cloud-image-utils \
+  guestfs-tools \
+  virt-top \
+  pipx
+
+pipx install ansible-core
+ansible-galaxy collection install kubernetes.core
+
+# Recommended
+pipx install ansible-lint
+```
+
 ## High Level Plan
 
 To experiment with K8s in my home lab, I will:
@@ -45,6 +75,8 @@ I selected XFS as this seems like it will play better than EXT4 with high-churn 
 
 I will use Debian 12 for this exercise.  I want to simulate a production environment as closely as possible so these images will be minimal, hardened following CIS benchmark, and be configured similarly to how production hosts would be configured to support K8s, with the exception that they will be self-contained VMs with simplified "hardware" lacking redundancies.
 
+**Update:** As I evolve the lab and the needs of the cluster, I will be adding secondary storage to each worker node to facilitate dedicated Longhorn storage.  This will be used for replicated, persistent volumes.
+
 ### K8s Notes
 
 I will begin with 1x control plane and 2 worker nodes.  We will use bridged networking so all nodes will be available on the LAN.  I will start with Flannel CNI.
@@ -68,6 +100,10 @@ Although I want to simulate a production environment, there are inevitably a few
 - We are statically addressing and naming the cluster inventory.  We have only a few hosts, and I wanted to ensure they are consistently named and reachable on my network without having to maintain dhcp or dns locally for them.
 
 Toward this end, I created a bridge named "lan-br0" and gave it the IP of my desktop workstation.  I enslaved my ethernet interface to this bridge.
+
+Terraform will in turn fire an Ansible provisioning playbook to perform the initial Kubernetes installation.
+
+### Ansible 
 
 #### TFVars
 
@@ -112,9 +148,28 @@ worker2.lab.local   Ready    <none>          2m37s   v1.33.7
 
 ## HA Cluster
 
+To install the ha-cluster configuration with 3 control plane and 2 worker nodes:
+
+```bash
+cd terraform/env/ha-cluster
+terraform init
+terraform validate
+terraform plan
+terraform apply
+```
+
+Within a few minutes, you should be able to run kubectl commands against the cluster.
+
+As of 2026-02-10, the cluster will be configured with the following add-ons:
+
+- Calico CNI
+- MetalLB
+- Longhorn CSI driver
+- ArgoCD
 
 ## Kubernetes Learning Notes
 
-There are a number of exercises describing different Kubernetes functionality in the kubenetes subdirectory.  Link below:
+I have been doing some learning lab exercises against my Kubernetes clusters.  Here are some walkthroughs/notes I scribbled in the process:
 
 [Kubernetes Lab Exercises](kubernetes/README.md)
+

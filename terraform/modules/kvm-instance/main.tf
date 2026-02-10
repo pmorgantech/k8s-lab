@@ -54,7 +54,7 @@ resource "libvirt_volume" "os_volume" {
   source = "${var.base_image_path}/${var.base_image_name}"
 }
 
-# volume to attach to the control-plane domain as main disk
+# volume to attach to the domain as main disk
 ## Create one writable volume per node, using the base OS image as backing
 resource "libvirt_volume" "vm" {
   for_each       = var.nodes
@@ -65,6 +65,15 @@ resource "libvirt_volume" "vm" {
   format         = "qcow2"
 }
 
+## This will serve as longhorn storage on worker nodes
+resource "libvirt_volume" "vm_storage" {
+  for_each       = local.worker_nodes
+
+  name           = "${each.key}_longhorn.qcow2"
+  pool           = libvirt_pool.cluster.name
+  format         = "qcow2"
+  size           = 53687091200 # 50GB
+}
 
 # ------------------------------------------------------
 # Network
@@ -98,12 +107,28 @@ resource "libvirt_domain" "cluster_nodes" {
       # use the per-node writable volume created above
       volume_id = libvirt_volume.vm[each.key].id
     }
+
+    # Additional CSI/Longhorn storage for worker nodes only
+    dynamic "disk" {
+      for_each = (
+        contains(keys(libvirt_volume.vm_storage), each.key)
+          ? [libvirt_volume.vm_storage[each.key]]
+          : []
+      )
+
+      content {
+        volume_id = disk.value.id
+      }
+    }
+
     cloudinit = libvirt_cloudinit_disk.node_init[each.key].id
     network_interface {
       network_id = libvirt_network.kubernetes_network.id
       hostname = each.key
-      addresses = [each.value["ipaddr"]]
-      mac = each.value["mac"]
+      # We will set the address within cloudinit
+      # Using addresses and mac here implies DHCP
+      #addresses = [each.value["ipaddr"]]
+      #mac = each.value["mac"]
     }
     
     console {

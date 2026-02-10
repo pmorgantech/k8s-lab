@@ -1,0 +1,10 @@
+---
+# ArgoCD helm chart configuration variables
+
+argocd_repo_name: "argo"
+argocd_repo_url: "https://argoproj.github.io/argo-helm"
+argocd_release_name: "argocd"
+argocd_chart_ref: "argo/argo-cd"
+argocd_namespace: "argocd"
+argocd_helm_chart_version: 9.4.1
+argocd_values: {}

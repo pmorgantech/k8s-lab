@@ -1,21 +1,21 @@
 # Variables to pass through to kvm-instance module
 
 variable "cluster_name" {
-    type = string
+  type = string
 }
 
 variable "network_bridge" {
-    type = string
+  type = string
 }
 
 variable "nodes" {
-    type = map(object({
-        role   = string        # control-plane | worker
-        memory = number        # MB
-        vcpus  = number
-        mac    = string
-        ipaddr = string
-    }))
+  type = map(object({
+    role   = string # control-plane | worker
+    memory = number # MB
+    vcpus  = number
+    mac    = string
+    ipaddr = string
+  }))
 }
 
 variable "dns_servers" {

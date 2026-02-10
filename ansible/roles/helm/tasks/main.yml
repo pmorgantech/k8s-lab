@@ -1,0 +1,37 @@
+- name: Check if we have the helm repo key
+  tags: helm_packages
+  when: ansible_facts['os_family'] == 'Debian'
+  ansible.builtin.stat:
+    path: "{{ helm_repo_key_file }}"
+  register: helm_repo_key_stat
+
+- name: Install helm repo/package on Debian/Ubuntu
+  tags: helm_packages
+  when:
+    - ansible_facts['os_family'] == 'Debian'
+    - not helm_repo_key_stat.stat.exists
+  block:
+    - name: Install helm repository
+      ansible.builtin.get_url:
+        url: "{{ helm_repo_key_url }}"
+        dest: /tmp/helm_repo_key.gpg.tmp
+        mode: '0644'
+    - name: De-armor key
+      ansible.builtin.shell: |
+        gpg --dearmor -o /usr/share/keyrings/helm-stable-debian.gpg \
+          /tmp/helm_repo_key.gpg.tmp
+        rm -f /tmp/helm_repo_key.gpg.tmp
+    - name: Add helm repository
+      ansible.builtin.deb822_repository:
+        name: helm-stable-debian
+        signed_by: "{{ helm_repo_key_file }}"
+        uris: "{{ helm_repo_url }}"
+        suites: any
+        components: main
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+    - name: Install helm package
+      ansible.builtin.apt:
+        name: helm
+        state: present
