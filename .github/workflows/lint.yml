@@ -37,8 +37,11 @@ jobs:
 
       - name: Terraform validate
         run: |
-          terraform init -backend=false
-          terraform validate | tee reports/terraform_validate.txt
+          cd terraform/env
+          for d in $(find terraform/env)
+          do
+            (cd $d && terraform init -backend=false && terraform validate) | tee -a ../../reports/terraform_validate.txt
+          done
 
       - name: Set up Python
         uses: actions/setup-python@v5
