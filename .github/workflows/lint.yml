@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Set up reports directory
-        run: mkdir -p ${{ github_workspace }}/reports
+        run: mkdir -p ${{ github.workspace }}/reports
 
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -37,11 +37,11 @@ jobs:
 
       - name: Terraform validate
         run: |
-          cd ${{ github_workspace }}/terraform/env
+          cd ${{ github.workspace }}/terraform/env
           for d in $(find . -mindepth 1 -maxdepth 1 -type d);
           do
             (cd $d && terraform init -backend=false && terraform validate) \
-              | tee -a ${{ github_workspace }}/reports/terraform_validate.txt
+              | tee -a ${{ github.workspace }}/reports/terraform_validate.txt
           done
 
       - name: Set up Python
@@ -53,14 +53,14 @@ jobs:
         run: pip install ansible-lint yamllint
 
       - name: Ansible Lint
-        run: ansible-lint -p -v ${{ github.workspace }} | tee ${{ github_workspace }}/reports/ansible_lint.txt
+        run: ansible-lint -p -v ${{ github.workspace }} | tee ${{ github.workspace }}/reports/ansible_lint.txt
 
       - name: YAML Lint
         run: |
-          yamllint -c ${{ github_workspace }}/.yamllint-kubernetes \
-            ${{ github_workspace }}/kubernetes \
-            ${{ github_workspace }}/.github/ \
-            | tee ${{ github_workspace }}/reports/yaml_lint.txt
+          yamllint -c ${{ github.workspace }}/.yamllint-kubernetes \
+            ${{ github.workspace }}/kubernetes \
+            ${{ github.workspace }}/.github/ \
+            | tee ${{ github.workspace }}/reports/yaml_lint.txt
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -72,17 +72,17 @@ jobs:
 
       - name: Markdown Lint
         run: |
-          cd ${{ github_workspace }}
+          cd ${{ github.workspace }}
           markdownlint '**/*.md' --ignore node_modules --ignore vendor \
-            | tee ${{ github_workspace }}/reports/markdown_lint.txt
+            | tee ${{ github.workspace }}/reports/markdown_lint.txt
 
       - name: Install Shellcheck
         run: sudo apt update && apt install -y shellcheck
 
       - name: Shellcheck
         run: |
-          cd ${{ github_workspace }}/scripts
+          cd ${{ github.workspace }}/scripts
           for script in $(find . -type f -name "*.sh" | grep -v CONFIG.sh);
           do
-            shellcheck -x "$script" | tee -a ${{ github_workspace }}/reports/shellcheck
+            shellcheck -x "$script" | tee -a ${{ github.workspace }}/reports/shellcheck
           done
