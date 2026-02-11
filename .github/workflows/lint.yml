@@ -40,7 +40,8 @@ jobs:
           cd ${{ github_workspace }}/terraform/env
           for d in $(find . -mindepth 1 -maxdepth 1 -type d);
           do
-            (cd $d && terraform init -backend=false && terraform validate) | tee -a ${{ github_workspace }}/reports/terraform_validate.txt
+            (cd $d && terraform init -backend=false && terraform validate) \
+              | tee -a ${{ github_workspace }}/reports/terraform_validate.txt
           done
 
       - name: Set up Python
@@ -55,7 +56,11 @@ jobs:
         run: ansible-lint -p -v ${{ github.workspace }} | tee ${{ github_workspace }}/reports/ansible_lint.txt
 
       - name: YAML Lint
-        run: yamllint -c ${{ github_workspace }}/.yamllint-kubernetes ${{ github_workspace }}/kubernetes ${{ github_workspace }}/.github/ | tee ${{ github_workspace }}/reports/yaml_lint.txt
+        run: |
+          yamllint -c ${{ github_workspace }}/.yamllint-kubernetes \
+            ${{ github_workspace }}/kubernetes \
+            ${{ github_workspace }}/.github/ \
+            | tee ${{ github_workspace }}/reports/yaml_lint.txt
 
       - name: Setup Node
         uses: actions/setup-node@v4
