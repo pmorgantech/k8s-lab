@@ -4,7 +4,8 @@
 # This script is useful for my Mint desktop and particular NM-based
 # network config.  YMMV.
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/CONFIG.sh
 source "$SCRIPT_DIR/CONFIG.sh"
 
 /usr/bin/sudo /usr/bin/nmcli con add type bridge ifname "${BRIDGE_NAME}"

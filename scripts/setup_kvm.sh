@@ -3,8 +3,9 @@
 # Set up KVM and virsh on local host
 # This setup is for Linux Mint 22 / Ubuntu
 
-BASE="$(/bin/dirname $0)"
-source "${BASE}/CONFIG.sh"
+BASE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/CONFIG.sh
+. "${BASE}/CONFIG.sh"
 
 
 /bin/echo "---------------------------------------------------------"
