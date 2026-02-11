@@ -1,10 +1,12 @@
 # Kubernetes Learning
 
-This repository follows my work installing a local multi-vm Kubernetes lab to simulate a production environment for learning and testing. 
+This repository follows my work installing a local multi-vm Kubernetes lab to
+simulate a production environment for learning and testing.
 
 ## Prerequisites
 
-This lab assumes a prequisites, namely that your workstation meets the following requirements:
+This lab assumes a prequisites, namely that your workstation meets the
+following requirements:
 
 - Debian/Ubuntu compatible
 - ansible-core 2.20 or later is installed
@@ -14,6 +16,7 @@ This lab assumes a prequisites, namely that your workstation meets the following
 - You have plenty of free diskspace visible under /k8s mountpoint/dir
 
 Eg. setup:
+
 ```
 sudo apt update
 sudo apt install -y \
@@ -27,7 +30,7 @@ sudo apt install -y \
   pipx
 
 pipx install ansible-core
-ansible-galaxy collection install kubernetes.core
+ansible-galaxy collection install -r ansible/requirements.yml
 
 # Recommended
 pipx install ansible-lint pre-commit
@@ -38,7 +41,7 @@ pre-commit install
 
 To experiment with K8s in my home lab, I will:
 
-- Set up storage (LVM/xfs), dir structure for containers, kubernetes, kvm images, etc
+- Set up LVM/xfs storage, dir structure for containers, kubernetes, kvm images
 - [Create a base image Kubernetes VMs](https://github.com/pmorgantech/k8s-base-images)
 - Set up virsh for my K8s installation
 - Configure/launch VMs
@@ -46,7 +49,8 @@ To experiment with K8s in my home lab, I will:
 
 ### Storage Notes
 
-I selected XFS as this seems like it will play better than EXT4 with high-churn KVM images and containerd images.
+I selected XFS as this seems like it will play better than EXT4 with high-churn KVM
+images and containerd images.
 
 #### Storage Layout
 
@@ -75,41 +79,65 @@ I selected XFS as this seems like it will play better than EXT4 with high-churn 
 
 ### Virsh / KVM notes
 
-I will use Debian 12 for this exercise.  I want to simulate a production environment as closely as possible so these images will be minimal, hardened following CIS benchmark, and be configured similarly to how production hosts would be configured to support K8s, with the exception that they will be self-contained VMs with simplified "hardware" lacking redundancies.
+I will use Debian 12 for this exercise.  I want to simulate a production environment
+as closely as possible so these images will be minimal, hardened following CIS benchmark,
+and be configured similarly to how production hosts would be configured to support K8s,
+with the exception that they will be self-contained VMs with simplified "hardware"
+lacking redundancies.
 
-**Update:** As I evolve the lab and the needs of the cluster, I will be adding secondary storage to each worker node to facilitate dedicated Longhorn storage.  This will be used for replicated, persistent volumes.
+**Update:** As I evolve the lab and the needs of the cluster, I will be adding
+secondary storage to each worker node to facilitate dedicated Longhorn storage.
+This will be used for replicated, persistent volumes.
 
 ### K8s Notes
 
-I will begin with 1x control plane and 2 worker nodes.  We will use bridged networking so all nodes will be available on the LAN.  I will start with Flannel CNI.
+I will begin with 1x control plane and 2 worker nodes.  We will use bridged networking
+so all nodes will be available on the LAN.  I will start with Flannel CNI.
 
-After this works successfully, I will build a second setup with a more production-friendly focus:
+After this works successfully, I will build a second setup with a more
+production-friendly focus:
+
 - 3x HA control plane
 - 2x worker nodes
 - Calico CNI
 
-As of this writing, Kubernetes v1.35 is latest.  I will start deliberately with 1.33 to enable performing a few update cycles as part of the learning process.
+As of this writing, Kubernetes v1.35 is latest.  I will start deliberately with 1.33
+to enable performing a few update cycles as part of the learning process.
 
 ### Terraform Bootstrapping
 
-To bootstrap the Kubernetes cluster, I will use terraform with a libvirt provider.  This will configure a storage pool, a bridge network, and set up several virtual machines to act as control plane and worker nodes.  Terraform apply and destroy will create and destroy the virtual machines and pool/network, but any further provisioning of Kubernetes itself will be left to Ansible.
+To bootstrap the Kubernetes cluster, I will use terraform with a libvirt provider.
+This will configure a storage pool, a bridge network, and set up several virtual
+machines to act as control plane and worker nodes.  Terraform apply and destroy will
+create and destroy the virtual machines and pool/network, but any further provisioning
+of Kubernetes itself will be left to Ansible.
 
 Some notes on the assumptions made here:
 
-Although I want to simulate a production environment, there are inevitably a few compromises to make here for the sake of simplicity and expediency.  The purpose of this lab is to learn about running workloads on and troubleshooting Kubernetes,  not to create complex routing scenarios for a home network.
+Although I want to simulate a production environment, there are inevitably a few
+compromises to make here for the sake of simplicity and expediency.  The purpose
+of this lab is to learn about running workloads on and troubleshooting Kubernetes,
+not to create complex routing scenarios for a home network.
 
-- Libvirt will define a bridge network that will allow hosts to have IPs on our LAN so the cluster is easily expanded to other LAN hosts and reachable on other hosts on the local lan without extra effort.
-- We are statically addressing and naming the cluster inventory.  We have only a few hosts, and I wanted to ensure they are consistently named and reachable on my network without having to maintain dhcp or dns locally for them.
+- Libvirt will define a bridge network that will allow hosts to have IPs on our LAN
+so the cluster is easily expanded to other LAN hosts and reachable on other hosts on
+the local lan without extra effort.
+- We are statically addressing and naming the cluster inventory.  We have only a few
+hosts, and I wanted to ensure they are consistently named and reachable on my network
+without having to maintain dhcp or dns locally for them.
 
-Toward this end, I created a bridge named "lan-br0" and gave it the IP of my desktop workstation.  I enslaved my ethernet interface to this bridge.
+Toward this end, I created a bridge named "lan-br0" and gave it the IP of my desktop
+workstation.  I enslaved my ethernet interface to this bridge.
 
-Terraform will in turn fire an Ansible provisioning playbook to perform the initial Kubernetes installation.
+Terraform will in turn fire an Ansible provisioning playbook to perform the initial
+Kubernetes installation.
 
-### Ansible 
+### Ansible
 
 #### TFVars
 
-To create the cluster, a local tfvars is necessary.  There is an example in the Terraform env directories.
+To create the cluster, a local tfvars is necessary.  There is an example in the
+Terraform env directories.
 
 ## Single Control Plane cluster
 
@@ -125,7 +153,9 @@ terraform apply
 
 This will create the VMs and run the playbook to install Kubernetes onto them.
 
-A few last steps:  You may wish to copy the control plane /etc/kubernetes/admin.config to ~/.kube/config on your workstation to enable running kubectl locally.
+A few last steps:  You may wish to copy the control plane /etc/kubernetes/admin.config
+to ~/.kube/config on your workstation to enable running kubectl locally.
+
 Create local hosts entries for your VMs, and a ~/.ssh/config map for them similar to:
 
 ```
@@ -137,7 +167,8 @@ Host cp1 worker1 worker2
   LogLevel ERROR
 ```
 
-You should be able to run kubectl directly on your workstation to connect to the test cluster:
+You should be able to run kubectl directly on your workstation to connect to the test
+cluster:
 
 ```
 $ kubectl get nodes
@@ -146,7 +177,6 @@ cp1.lab.local       Ready    control-plane   3m      v1.33.7
 worker1.lab.local   Ready    <none>          2m38s   v1.33.7
 worker2.lab.local   Ready    <none>          2m37s   v1.33.7
 ```
-
 
 ## HA Cluster
 
@@ -171,7 +201,7 @@ As of 2026-02-10, the cluster will be configured with the following add-ons:
 
 ## Kubernetes Learning Notes
 
-I have been doing some learning lab exercises against my Kubernetes clusters.  Here are some walkthroughs/notes I scribbled in the process:
+I have been doing some learning lab exercises against my Kubernetes clusters.
+Here are some walkthroughs/notes I scribbled in the process:
 
 [Kubernetes Lab Exercises](kubernetes/README.md)
-

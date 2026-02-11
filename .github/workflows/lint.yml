@@ -52,8 +52,13 @@ jobs:
       - name: Install Python linters
         run: pip install ansible-lint yamllint
 
+      - name: Install Ansible collections
+        run: ansible-galaxy collection install -r ansible/requirements.yml
+
       - name: Ansible Lint
-        run: ansible-lint -p -v ${{ github.workspace }} | tee ${{ github.workspace }}/reports/ansible_lint.txt
+        run: |
+          ansible-lint -p -v ${{ github.workspace }} \
+            | tee ${{ github.workspace }}/reports/ansible_lint.txt
 
       - name: YAML Lint
         run: |
@@ -73,16 +78,20 @@ jobs:
       - name: Markdown Lint
         run: |
           cd ${{ github.workspace }}
-          markdownlint '**/*.md' --ignore node_modules --ignore vendor \
+          markdownlint '**/*.md' \
+            --ignore node_modules \
+            --ignore vendor \
+            --ignore kubernetes \
             | tee ${{ github.workspace }}/reports/markdown_lint.txt
 
       - name: Install Shellcheck
-        run: sudo apt update && apt install -y shellcheck
+        run: sudo apt update && sudo apt install -y shellcheck
 
       - name: Shellcheck
         run: |
           cd ${{ github.workspace }}/scripts
           for script in $(find . -type f -name "*.sh" | grep -v CONFIG.sh);
           do
-            shellcheck -x "$script" | tee -a ${{ github.workspace }}/reports/shellcheck
+            shellcheck -x "$script" \
+              | tee -a ${{ github.workspace }}/reports/shellcheck
           done
