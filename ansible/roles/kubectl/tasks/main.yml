@@ -14,21 +14,12 @@
         state: directory
         mode: "0755"
 
-    - name: Install Kubernetes apt key (dearmored)
-      ansible.builtin.shell: |
-        curl -fsSL "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_minor }}/deb/Release.key" \
-          | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-        chmod 0644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-      args:
-        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-
-    - name: Add Kubernetes apt repository
-      ansible.builtin.apt_repository:
-        repo: >-
-          deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg]
-          https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_minor }}/deb/ /
-        filename: kubernetes
-        state: present
+    - name: Import apt repo GPG key
+      ansible.builtin.include_role:
+        name: apt_keyring
+      vars:
+        apt_keyring_url: "https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v{{ kubernetes_major_minor }}/deb/Release.key"
+        apt_keyring_name: kubernetes-apt-keyring.gpg
 
     - name: Install kubectl
       ansible.builtin.apt:

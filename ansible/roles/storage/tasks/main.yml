@@ -3,7 +3,7 @@
 
 - name: Install prerequisite packages
   tags: storage_packages
-  package:
+  ansible.builtin.package:
     name: '{{ storage_packages }}'
     state: present
 
@@ -19,7 +19,7 @@
   when: ansible_facts['hostname'] in groups['workers']
   block:
     - name: Storage disk is formatted
-      ansible.builtin.filesystem:
+      community.general.filesystem:
         dev: "{{ storage_device }}"
         fstype: "{{ storage_filesystem }}"
         state: present
@@ -33,7 +33,7 @@
         mode: '0700'
 
     - name: Storage is mounted
-      ansible.builtin.mount:
+      ansible.posix.mount:
         src: "{{ storage_device }}"
         fstype: "{{ storage_filesystem }}"
         opts: "{{ storage_filesystem_opts }}"

@@ -1,9 +1,20 @@
 ---
 # Playbook to install Kubernetes
 
+- name: Inject Kubernetes module into Ansible's pipx environment
+  hosts: workstation
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Inject kubernetes into Ansible's pipx environment
+      command: pipx inject ansible kubernetes
+      register: result
+      changed_when: "'injected package' in result.stdout"
+
 - name: Install kubectl
   tags: kubectl
   hosts: workstation
+  connection: local
   become: true
   gather_facts: true
   roles:
@@ -15,7 +26,7 @@
   gather_facts: false
   tasks:
     - name: Wait for SSH
-      wait_for_connection:
+      ansible.builtin.wait_for_connection:
         delay: 5
         timeout: 300
 
@@ -44,19 +55,35 @@
   connection: local
   become: true
   gather_facts: false
-  tasks:
-    - name: Merge admin.conf into ~/.kube/config
-      ansible.builtin.shell: |
-        export KUBECONFIG="{{ kubeconfig_path }}:/tmp/k8s-admin.conf"
-        HOMEDIR="{{ lookup('env', 'HOME') }}"
-        mkdir -p "$HOMEDIR/.kube"
-        kubectl config view --merge --flatten > "$HOMEDIR/.kube/config_merged"
-        mv "$HOMEDIR/.kube/config_merged" "$HOMEDIR/.kube/config"
-        chmod 0600 "$HOMEDIR/.kube/config"
-        OWNER=$(stat -c "%U" "$HOMEDIR")
-        chown -R $OWNER "$HOMEDIR/.kube"
   vars:
-    kubeconfig_path: "$HOMEDIR/.kube/config"
+    kube_dir: "{{ lookup('env', 'HOME') }}/.kube"
+    kubeconfig: "{{ kube_dir }}/config"
+    admin_conf: /tmp/k8s-admin.conf
+    merged_tmp: /tmp/kubeconfig.merged
+
+  tasks:
+    - name: Ensure ~/.kube exists
+      ansible.builtin.file:
+        path: "{{ kube_dir }}"
+        state: directory
+        mode: "0700"
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+
+    - name: Generate merged kubeconfig
+      ansible.builtin.shell: |
+        export KUBECONFIG="{{ kubeconfig }}:{{ admin_conf }}"
+        kubectl config view --merge --flatten
+      register: kubeconfig_rendered
+      changed_when: false
+
+    - name: Install merged kubeconfig
+      ansible.builtin.copy:
+        content: "{{ kubeconfig_rendered.stdout }}"
+        dest: "{{ kubeconfig }}"
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+        mode: "0600"
 
 - name: Join additional control plane nodes
   tags: join_control_plane
@@ -92,7 +119,7 @@
   gather_facts: false
   tasks:
     - name: Print worker node name
-      debug:
+      ansible.builtin.debug:
         msg: "Worker node: {{ inventory_hostname }}"
 
 - name: Join worker nodes

@@ -1,0 +1,6 @@
+---
+# Empty defaults
+
+apt_keyring_dir: /etc/apt/keyrings
+apt_keyring_url: ""
+apt_keyring_name: ""

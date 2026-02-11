@@ -1,10 +1,11 @@
 ---
 # Tasks to join worker nodes to the Kubernetes cluster
 
-- name: debug join worker command
-  debug: msg="{{ hostvars[groups['control_plane'][0]].worker_join_command }}"
+- name: Debug join worker command
+  ansible.builtin.debug:
+    msg: "{{ hostvars[groups['control_plane'][0]].worker_join_command }}"
 
 - name: Join worker to cluster
-  command: "{{ hostvars[groups['control_plane'][0]].worker_join_command }}"
+  ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]].worker_join_command }}"
   args:
     creates: /etc/kubernetes/kubelet.conf

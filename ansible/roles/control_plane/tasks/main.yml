@@ -1,17 +1,23 @@
 ---
 # Tasks to initialize the Kubernetes control plane
 
+# Needed for kubernetes.core.k8s module to interact with the cluster during control plane initialization (e.g. applying CNI manifests).
+- name: Install python kubernetes support
+  ansible.builtin.package:
+    name: python3-kubernetes
+    state: present
+
 - name: Check if kubeadm has already initialized this node
   ansible.builtin.stat:
     path: /etc/kubernetes/admin.conf
-  register: kubeadm_initialized
+  register: control_plane_kubeadm_initialized
 
 - name: Initialize first control plane node
   when:
     - ansible_facts['hostname'] == groups['control_plane'][0]
-    - not kubeadm_initialized.stat.exists
+    - not control_plane_kubeadm_initialized.stat.exists
   block:
-    - name: create config manifest
+    - name: Create config manifest
       ansible.builtin.copy:
         dest: /etc/kubernetes/kubeadm-init.yaml
         mode: '0600'
@@ -36,7 +42,7 @@
         kubeadm init
         --config /etc/kubernetes/kubeadm-init.yaml
         --upload-certs
-      register: kubeadm_init_result
+      register: control_plane_kubeadm_init_result
       changed_when: true
       failed_when: false
 
@@ -82,20 +88,6 @@
 
 - name: Generate and publish control-plane join command
   tags: [join_control_plane]
-  block:
-    - name: Create join command
-      ansible.builtin.command: kubeadm token create --print-join-command
-      register: _worker_join
-
-    - name: Upload certs and capture certificate key
-      ansible.builtin.command: kubeadm init phase upload-certs --upload-certs
-      register: _upload_certs
-
-    - name: Save cp_join_command fact on cp01 for other hosts to use
-      ansible.builtin.set_fact:
-        cp_join_command: "{{ _worker_join.stdout }} --control-plane --certificate-key {{ (_upload_certs.stdout_lines | last) }}"
-        worker_join_command: "{{ _worker_join.stdout }}"
-      delegate_facts: true
   delegate_to: "{{ groups['control_plane'][0] }}"
   run_once: true
   when:
@@ -103,10 +95,39 @@
     # The control_plane role is used in multiple plays (init on cp01, join on cp02+).
     # Generate/upload certs only during the join play, while delegating execution to cp01.
     - inventory_hostname != groups['control_plane'][0]
+  block:
+    - name: Create join command
+      ansible.builtin.command: kubeadm token create --print-join-command
+      register: control_plane_worker_join
+      changed_when: false
+      run_once: true
+      delegate_to: "{{ groups['control_plane'][0] }}"
+
+    - name: Upload certs and capture certificate key
+      ansible.builtin.command: kubeadm init phase upload-certs --upload-certs
+      register: control_plane_upload_certs
+      changed_when: false
+
+    - name: Save cp_join_command fact on first control_plane for other hosts to use  # noqa: var-naming[no-role-prefix]
+      ansible.builtin.set_fact:
+        control_plane_join_command: >-
+          {{ control_plane_worker_join.stdout }}
+          --control-plane
+          --certificate-key {{ control_plane_upload_certs.stdout_lines | last }}
+        worker_join_command: "{{ control_plane_worker_join.stdout }}"
+      delegate_facts: true
+      changed_when: false
+
+- name: Check if control-plane already joined
+  ansible.builtin.stat:
+    path: /etc/kubernetes/kubelet.conf
+  register: control_plane_kubelet_conf
 
 - name: Join additional control plane nodes
   tags: [join_control_plane]
-  ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]].cp_join_command }}"
+  ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]].control_plane_join_command }}"
   when:
     - is_ha_cluster | bool
     - inventory_hostname != groups['control_plane'][0]
+    - not control_plane_kubelet_conf.stat.exists
+  changed_when: false

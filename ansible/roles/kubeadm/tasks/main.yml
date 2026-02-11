@@ -4,19 +4,13 @@
 - name: Install Kubernetes apt repo key + repo (Debian)
   when: ansible_facts['os_family'] == "Debian"
   block:
-    - name: Ensure apt keyrings dir exists
-      ansible.builtin.file:
-        path: /etc/apt/keyrings
-        state: directory
-        mode: "0755"
 
-    - name: Install Kubernetes apt GPG key (dearmored keyring)
-      ansible.builtin.shell: |
-        curl -fsSL "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_minor }}/deb/Release.key" \
-          | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-        chmod 0644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-      args:
-        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    - name: Import apt repo GPG key
+      ansible.builtin.include_role:
+        name: apt_keyring
+      vars:
+        apt_keyring_url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_minor }}/deb/Release.key"
+        apt_keyring_name: kubernetes-apt-keyring.gpg
 
     - name: Remove any old kubernetes repo list files (no signed-by)
       ansible.builtin.file:

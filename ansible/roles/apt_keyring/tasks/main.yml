@@ -1,0 +1,41 @@
+---
+# Grab a GPG key, dearmor it, and place it in the apt keyrings directory
+
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: "{{ apt_keyring_dir }}"
+    state: directory
+    mode: "0755"
+    owner: root
+    group: root
+
+- name: Download armored apt GPG key
+  ansible.builtin.get_url:
+    url: "{{ apt_keyring_url }}"
+    dest: "/tmp/{{ apt_keyring_name }}.asc"
+    mode: "0600"
+    owner: root
+    group: root
+    force: true
+
+- name: Dearmor apt GPG key into keyring
+  ansible.builtin.command:
+    cmd: >
+      gpg --dearmor
+      -o {{ apt_keyring_dir }}/{{ apt_keyring_name }}
+      /tmp/{{ apt_keyring_name }}.asc
+  args:
+    creates: "{{ apt_keyring_dir }}/{{ apt_keyring_name }}"
+  become: true
+
+- name: Set permissions on keyring
+  ansible.builtin.file:
+    path: "{{ apt_keyring_dir }}/{{ apt_keyring_name }}"
+    mode: "0644"
+    owner: root
+    group: root
+
+- name: Remove temporary armored key
+  ansible.builtin.file:
+    path: "/tmp/{{ apt_keyring_name }}.asc"
+    state: absent
