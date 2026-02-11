@@ -21,11 +21,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up reports directory
-        run: mkdir -p ${{ github.workspace }}/reports
-
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Set up reports directory
+        run: mkdir -p ${{ github.workspace }}/reports
 
       - name: Terraform setup
         uses: hashicorp/setup-terraform@v3
