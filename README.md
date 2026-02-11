@@ -17,7 +17,7 @@ following requirements:
 
 Eg. setup:
 
-```
+```bash
 sudo apt update
 sudo apt install -y \
   qemu-kvm \
@@ -54,7 +54,7 @@ images and containerd images.
 
 #### Storage Layout
 
-```
+```text
 /k8s
 ├── images/                 # Base disk image (to be cloned for kubernetes nodes)
 |
@@ -158,7 +158,7 @@ to ~/.kube/config on your workstation to enable running kubectl locally.
 
 Create local hosts entries for your VMs, and a ~/.ssh/config map for them similar to:
 
-```
+```yaml
 Host cp1 worker1 worker2
   IdentityFile ~/.ssh/id_ed25519
   User debian
@@ -170,7 +170,7 @@ Host cp1 worker1 worker2
 You should be able to run kubectl directly on your workstation to connect to the test
 cluster:
 
-```
+```bash
 $ kubectl get nodes
 NAME                STATUS   ROLES           AGE     VERSION
 cp1.lab.local       Ready    control-plane   3m      v1.33.7

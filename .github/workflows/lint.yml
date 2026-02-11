@@ -89,8 +89,8 @@ jobs:
 
       - name: Shellcheck
         run: |
-          cd ${{ github.workspace }}/scripts
-          for script in $(find . -type f -name "*.sh" | grep -v CONFIG.sh);
+          cd ${{ github.workspace }}
+          for script in $(find scripts -type f -name "*.sh" | grep -v CONFIG.sh);
           do
             shellcheck -x "$script" \
               | tee -a ${{ github.workspace }}/reports/shellcheck
