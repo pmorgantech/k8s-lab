@@ -47,24 +47,24 @@
         state: present
         kubeconfig: /etc/kubernetes/admin.conf
 
-    # - name: Apply Calico IPPool with correct pod CIDR
-    #   ansible.builtin.copy:
-    #     dest: /tmp/calico-ippool.yaml
-    #     content: |
-    #       apiVersion: projectcalico.org/v3
-    #       kind: IPPool
-    #       metadata:
-    #         name: default-ipv4-ippool
-    #       spec:
-    #         cidr: "{{ pod_cidr }}"
-    #         ipipMode: Always
-    #         natOutgoing: true
-    #         selector: all()
-    # - name: Apply the custom IPPool
-    #   ansible.builtin.shell: |
-    #     export KUBECONFIG=/etc/kubernetes/admin.conf
-    #     kubectl apply -f /tmp/calico-ippool.yaml
-    # - name: Delete the temporary IPPool file
-    #   ansible.builtin.file:
-    #     path: /tmp/calico-ippool.yaml
-    #     state: absent
+# - name: Apply Calico IPPool with correct pod CIDR
+#   ansible.builtin.copy:
+#     dest: /tmp/calico-ippool.yaml
+#     content: |
+#       apiVersion: projectcalico.org/v3
+#       kind: IPPool
+#       metadata:
+#         name: default-ipv4-ippool
+#       spec:
+#         cidr: "{{ pod_cidr }}"
+#         ipipMode: Always
+#         natOutgoing: true
+#         selector: all()
+# - name: Apply the custom IPPool
+#   ansible.builtin.shell: |
+#     export KUBECONFIG=/etc/kubernetes/admin.conf
+#     kubectl apply -f /tmp/calico-ippool.yaml
+# - name: Delete the temporary IPPool file
+#   ansible.builtin.file:
+#     path: /tmp/calico-ippool.yaml
+#     state: absent

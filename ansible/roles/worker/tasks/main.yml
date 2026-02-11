@@ -6,6 +6,7 @@
     msg: "{{ hostvars[groups['control_plane'][0]].worker_join_command }}"
 
 - name: Join worker to cluster
-  ansible.builtin.command: "{{ hostvars[groups['control_plane'][0]].worker_join_command }}"
+  ansible.builtin.command: >
+    {{ hostvars[groups['control_plane'][0]].worker_join_command }}
   args:
     creates: /etc/kubernetes/kubelet.conf

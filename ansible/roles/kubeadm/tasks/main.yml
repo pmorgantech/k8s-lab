@@ -5,12 +5,12 @@
   when: ansible_facts['os_family'] == "Debian"
   block:
 
-    - name: Import apt repo GPG key
+    - name: Import kubernetes apt repo GPG key for kubeadm
       ansible.builtin.include_role:
         name: apt_keyring
       vars:
-        apt_keyring_url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_major_minor }}/deb/Release.key"
-        apt_keyring_name: kubernetes-apt-keyring.gpg
+        apt_keyring_url: "{{ kubeadm_apt_url }}"
+        apt_keyring_name: "{{ kubeadm_apt_name }}"
 
     - name: Remove any old kubernetes repo list files (no signed-by)
       ansible.builtin.file:

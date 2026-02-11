@@ -2,10 +2,10 @@
 # Global variables for the Kubernetes cluster
 
 kubernetes_version: "1.33.7"
-kubernetes_major_minor: "{{ kubernetes_version.split('.')[0] }}.{{ kubernetes_version.split('.')[1] }}"
+kubernetes_major_minor: "{{ kubernetes_version.split('.')[:2] | join('.') }}"
+
 pod_cidr: "10.10.0.0/16"
 service_cidr: "10.96.0.0/12"
-
 container_runtime: containerd
 domain: lab.local
 
@@ -20,17 +20,31 @@ longhorn_helm_chart_version: 1.4.0
 cni_plugin: calico
 
 flannel_plugin_version: "0.27.4"
-flannel_plugin_url: "https://github.com/flannel-io/flannel/releases/download/v{{ cni_plugin_version }}/flannel-{{ cni_plugin_version }}-amd64.tgz"
-flannel_manifest_url: "https://raw.githubusercontent.com/flannel-io/flannel/v0.27.4/Documentation/kube-flannel.yml"
+flannel_plugin_base: https://github.com/flannel-io/flannel
+flannel_plugin_url: >-
+  {{ flannel_plugin_base ~ '/releases/download/v' ~ cni_plugin_version
+  ~ '/flannel-' ~ cni_plugin_version ~ '-amd64.tgz' }}"
+
+flannel_manifest_base: https://raw.githubusercontent.com/flannel-io/flannel
+flannel_manifest_version: "0.27.4"
+flannel_manifest_url: >-
+  {{ flannel_manifest_base ~ '/v' ~ flannel_manifest_version
+  ~ '/Documentation/kube-flannel.yml' }}
+
 flannel_manifest_path: "/etc/kubernetes/flannel.yml"
 
 calico_plugin_version: "3.31.3"
-calico_manifest_url: "https://raw.githubusercontent.com/projectcalico/calico/v{{ calico_plugin_version }}/manifests/calico.yaml"
+calico_plugin_base: https://raw.githubusercontent.com/projectcalico/calico/
+calico_manifest_url: >-
+  {{ calico_plugin_base ~ 'v' ~ calico_plugin_version
+  ~ '/manifests/calico.yaml' }}
 calico_manifest_path: "/etc/kubernetes/calico.yaml"
 
-# MetalLB
 metallb_version: "0.15.3"
-metallb_manifest_url: "https://raw.githubusercontent.com/metallb/metallb/v{{ metallb_version }}/config/manifests/metallb-native.yaml"
+metallb_manifest_base: https://raw.githubusercontent.com/metallb/metallb
+metallb_manifest_url: >-
+  {{ metallb_manifest_base ~ '/v' ~ metallb_version
+  ~ '/config/manifests/metallb-native.yaml' }}
 metallb_manifest_path: "/etc/kubernetes/metallb.yaml"
 metallb_ip_range: "192.168.1.101-192.168.1.120"
 

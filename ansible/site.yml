@@ -7,7 +7,7 @@
   gather_facts: false
   tasks:
     - name: Inject kubernetes into Ansible's pipx environment
-      command: pipx inject ansible kubernetes
+      ansible.builtin.command: pipx inject ansible kubernetes
       register: result
       changed_when: "'injected package' in result.stdout"
 
@@ -100,19 +100,6 @@
   gather_facts: true
   roles:
     - cni
-
-# - name: Sleep for 30 seconds to allow cluster to stabilize
-#   tags: wait_for_cluster_stabilization
-#   hosts: localhost
-#   connection: local
-#   become: false
-#   gather_facts: false
-#   tasks:
-#     - name: Sleep for 30 seconds
-#       ansible.builtin.pause:
-#         seconds: 30
-
-# kubectl wait --for=condition=Ready nodes -l node-role.kubernetes.io/control-plane --timeout=300s
 
 - name: Indicate worker node names
   hosts: workers

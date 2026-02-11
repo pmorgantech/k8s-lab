@@ -1,0 +1,5 @@
+---
+
+kubeadm_apt_base: "https://pkgs.k8s.io/core:/stable"
+kubeadm_apt_url: "{{ kubeadm_apt_base }}:/v{{ kubernetes_major_minor }}/deb/Release.key"
+kubeadm_apt_name: kubernetes-apt-keyring.gpg

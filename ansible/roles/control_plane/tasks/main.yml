@@ -1,7 +1,8 @@
 ---
 # Tasks to initialize the Kubernetes control plane
 
-# Needed for kubernetes.core.k8s module to interact with the cluster during control plane initialization (e.g. applying CNI manifests).
+# Needed for kubernetes.core.k8s module to interact with the cluster during
+# control plane initialization (e.g. applying CNI manifests).
 - name: Install python kubernetes support
   ansible.builtin.package:
     name: python3-kubernetes
@@ -93,7 +94,8 @@
   when:
     - is_ha_cluster | bool
     # The control_plane role is used in multiple plays (init on cp01, join on cp02+).
-    # Generate/upload certs only during the join play, while delegating execution to cp01.
+    # Generate/upload certs only during the join play, while delegating execution to
+    # the first control plane node.
     - inventory_hostname != groups['control_plane'][0]
   block:
     - name: Create join command
@@ -108,7 +110,9 @@
       register: control_plane_upload_certs
       changed_when: false
 
-    - name: Save cp_join_command fact on first control_plane for other hosts to use  # noqa: var-naming[no-role-prefix]
+    # Do not complain about worker_join_command below
+    # noqa: var-naming[no-role-prefix]
+    - name: Save control_plane_join_command fact on first control_plane for other hosts to use
       ansible.builtin.set_fact:
         control_plane_join_command: >-
           {{ control_plane_worker_join.stdout }}

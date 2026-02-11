@@ -3,9 +3,10 @@
 
 containerd_version: "2.2.1-1"
 
+containerd_apt_url: https://download.docker.com/linux/debian/gpg
+containerd_apt_name: docker.gpg
+
 # Generated with: containerd config default > config.toml
-# Reference: https://github.com/containerd/containerd/blob/main/docs/man/containerd-config.toml.5.md
-# [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
 #
 # OVERRIDES:
 #  SystemdCgroup = true

@@ -1,0 +1,5 @@
+---
+
+kubectl_apt_base: https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable
+kubectl_apt_url: "{{ kubectl_apt_base }}:/v{{ kubernetes_major_minor }}/deb/Release.key"
+kubectl_apt_name: kubernetes-apt-keyring.gpg

@@ -1,7 +1,7 @@
 ---
 # Tasks to install and configure containerd
 
-- name: Install Docker apt repo key + repo (Debian)
+- name: Install containerd apt repo key + repo (Debian)
   when: ansible_facts['os_family'] == "Debian"
   block:
     - name: Install repo prerequisites
@@ -13,12 +13,12 @@
         state: present
         update_cache: true
 
-    - name: Import apt repo GPG key
+    - name: Import apt repo GPG key for containerd
       ansible.builtin.include_role:
         name: apt_keyring
       vars:
-        apt_keyring_url: https://download.docker.com/linux/debian/gpg
-        apt_keyring_name: docker.gpg
+        apt_keyring_url: "{{ containerd_apt_url }}"
+        apt_keyring_name: "{{ containerd_apt_name }}"
 
     - name: Remove any old docker repo list files (no signed-by)
       ansible.builtin.file:

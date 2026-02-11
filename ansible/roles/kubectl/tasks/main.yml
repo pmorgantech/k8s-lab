@@ -14,12 +14,12 @@
         state: directory
         mode: "0755"
 
-    - name: Import apt repo GPG key
+    - name: Import kubernetes apt repo GPG key for kubectl
       ansible.builtin.include_role:
         name: apt_keyring
       vars:
-        apt_keyring_url: "https://prod-cdn.packages.k8s.io/repositories/isv:/kubernetes:/core:/stable:/v{{ kubernetes_major_minor }}/deb/Release.key"
-        apt_keyring_name: kubernetes-apt-keyring.gpg
+        apt_keyring_url: "{{ kubectl_apt_url }}"
+        apt_keyring_name: "{{ kubectl_apt_name }}"
 
     - name: Install kubectl
       ansible.builtin.apt:
