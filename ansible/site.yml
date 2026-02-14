@@ -132,3 +132,11 @@
   gather_facts: true
   roles:
     - loadbalancer
+
+- name: Ensure postinstall tasks are completed
+  tags: postinstall
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - postinstall
