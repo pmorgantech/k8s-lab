@@ -7,7 +7,12 @@ repos:
     hooks:
       - id: trailing-whitespace
         name: Remove trailing whitespace
-        entry: bash -c 'git diff --cached --name-only -z --diff-filter=ACMR | xargs -0 perl -pi -e "s/[ \t]+$//" && git diff --cached --name-only -z --diff-filter=ACMR | xargs -0 git add'
+        entry: >-
+          bash -c '
+            git diff --cached --name-only -z --diff-filter=ACMR |
+            xargs -0 perl -pi -e "s/[ \t]+$//" &&
+            git diff --cached --name-only -z --diff-filter=ACMR |
+            xargs -0 git add'
         language: system
         pass_filenames: false
 
