@@ -5,8 +5,8 @@
 - name: Ensure metrics server is installed
   tags: metrics_server
   kubernetes.core.k8s:
-    src: "{{ metrics_server_manifest_url }}"
+    src: "{{ postinstall_metrics_server_manifest_url }}"
     state: present
     kubeconfig: /etc/kubernetes/admin.conf
-  run_once: yes
+  run_once: true
   delegate_to: "{{ groups['control_plane'][0] }}"

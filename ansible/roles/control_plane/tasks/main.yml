@@ -114,8 +114,7 @@
       changed_when: false
 
     # Do not complain about worker_join_command below
-    # noqa: var-naming[no-role-prefix]
-    - name: Save control_plane_join_command fact on first control_plane for other hosts to use
+    - name: Save join commands  # noqa: var-naming[no-role-prefix]
       ansible.builtin.set_fact:
         control_plane_join_command: >-
           {{ control_plane_worker_join.stdout }}
