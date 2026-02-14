@@ -49,17 +49,16 @@
   roles:
     - control_plane
 
-- name: Generate kubeconfig file
-  tags: merge_admin_conf
+- name: Generate kubeconfig file for workstation
+  tags: copy_kubeconfig
   hosts: localhost
   connection: local
-  become: true
+  become: false
   gather_facts: false
   vars:
     kube_dir: "{{ lookup('env', 'HOME') }}/.kube"
     kubeconfig: "{{ kube_dir }}/config"
     admin_conf: /tmp/k8s-admin.conf
-    merged_tmp: /tmp/kubeconfig.merged
 
   tasks:
     - name: Ensure ~/.kube exists
@@ -70,20 +69,19 @@
         owner: "{{ lookup('env', 'USER') }}"
         group: "{{ lookup('env', 'USER') }}"
 
-    - name: Generate merged kubeconfig
-      ansible.builtin.shell: |
-        export KUBECONFIG="{{ kubeconfig }}:{{ admin_conf }}"
-        kubectl config view --merge --flatten
-      register: kubeconfig_rendered
-      changed_when: false
-
-    - name: Install merged kubeconfig
+    - name: Install kubeconfig
       ansible.builtin.copy:
-        content: "{{ kubeconfig_rendered.stdout }}"
+        src: "{{ admin_conf }}"
         dest: "{{ kubeconfig }}"
         owner: "{{ lookup('env', 'USER') }}"
         group: "{{ lookup('env', 'USER') }}"
         mode: "0600"
+        force: true
+
+    - name: Remove temporary admin.conf file
+      ansible.builtin.file:
+        path: "{{ admin_conf }}"
+        state: absent
 
 - name: Join additional control plane nodes
   tags: join_control_plane
@@ -134,3 +132,11 @@
   gather_facts: true
   roles:
     - loadbalancer
+
+- name: Ensure postinstall tasks are completed
+  tags: postinstall
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - postinstall

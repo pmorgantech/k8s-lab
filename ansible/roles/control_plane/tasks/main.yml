@@ -37,7 +37,11 @@
           kind: InitConfiguration
           nodeRegistration:
             criSocket: unix:///run/containerd/containerd.sock
-
+          ---
+          apiVersion: kubeadm.k8s.io/v1beta4
+          kind: KubeletConfiguration
+          serverTLSBootstrap: true
+          rotateCertificates: true
     - name: Run kubeadm init command
       ansible.builtin.command: >
         kubeadm init
@@ -45,7 +49,6 @@
         --upload-certs
       register: control_plane_kubeadm_init_result
       changed_when: true
-      failed_when: false
 
 - name: Create ~/.kube dir
   tags: copy_admin_conf
@@ -81,11 +84,11 @@
   loop_control:
     loop_var: admin_user
 
-- name: Remove temporary admin.conf file
-  tags: remove_admin_conf
-  ansible.builtin.file:
-    path: /tmp/k8s-admin.conf
-    state: absent
+# - name: Remove temporary admin.conf file
+#   tags: remove_admin_conf
+#   ansible.builtin.file:
+#     path: /tmp/k8s-admin.conf
+#     state: absent
 
 - name: Generate and publish control-plane join command
   tags: [join_control_plane]
@@ -111,8 +114,7 @@
       changed_when: false
 
     # Do not complain about worker_join_command below
-    # noqa: var-naming[no-role-prefix]
-    - name: Save control_plane_join_command fact on first control_plane for other hosts to use
+    - name: Save join commands  # noqa: var-naming[no-role-prefix]
       ansible.builtin.set_fact:
         control_plane_join_command: >-
           {{ control_plane_worker_join.stdout }}
